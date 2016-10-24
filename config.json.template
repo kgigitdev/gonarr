@@ -1,0 +1,7 @@
+{
+    "hostname" : "your.host.name",
+    "port" : 9876,
+    "username" : "yourUserName",
+    "password" : "yourS3kr3tpA55W0rd",
+    "apiKey" : "0123456789abcdef0123456789abcdef"
+}
