@@ -1,8 +1,10 @@
 package gonarr
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -45,11 +47,23 @@ func NewGonarrFromConfigFile(path string) *Gonarr {
 	return g
 }
 
-func (g *Gonarr) makeRequest(command string) []byte {
+func (g *Gonarr) makeGetRequest(command string) []byte {
+	return g.makeRequest("GET", command, nil)
+}
+
+func (g *Gonarr) makePostRequest(command string, payload io.Reader) []byte {
+	return g.makeRequest("POST", command, payload)
+}
+
+func (g *Gonarr) makePutRequest(command string, payload io.Reader) []byte {
+	return g.makeRequest("PUT", command, payload)
+}
+
+func (g *Gonarr) makeRequest(method string, command string, payload io.Reader) []byte {
 	url := fmt.Sprintf("http://%s:%d/%s%s",
 		g.Hostname, g.Port, g.ApiPrefix, command)
 	fmt.Println(url)
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest(method, url, payload)
 	req.Header.Add("X-Api-Key", g.APIKey)
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -65,19 +79,25 @@ func (g *Gonarr) makeRequest(command string) []byte {
 	return body
 }
 
+func (g *Gonarr) UpdateOneSeries(cmd MySeries) []byte {
+	url := fmt.Sprintf("series")
+	payload := toJSONB(cmd)
+	return g.makePutRequest(url, bytes.NewBuffer(payload))
+}
+
 // ListCommands ...
 func (g *Gonarr) ListCommands() []byte {
-	return g.makeRequest("commands")
+	return g.makeGetRequest("commands")
 }
 
 // ListCalendar ...
 func (g *Gonarr) ListCalendar() []byte {
-	return g.makeRequest("calendar")
+	return g.makeGetRequest("calendar")
 }
 
 // GetAllSeries lists all series in your collection
 func (g *Gonarr) GetAllSeries() MySeriesList {
-	b := g.makeRequest("series")
+	b := g.makeGetRequest("series")
 	var mySeriesList MySeriesList
 	json.Unmarshal(b, &mySeriesList)
 	return mySeriesList
@@ -85,14 +105,22 @@ func (g *Gonarr) GetAllSeries() MySeriesList {
 
 func (g *Gonarr) GetOneSeries(seriesId int) MySeries {
 	url := fmt.Sprintf("series/%d", seriesId)
-	b := g.makeRequest(url)
+	b := g.makeGetRequest(url)
 	var mySeries MySeries
 	json.Unmarshal(b, &mySeries)
 	return mySeries
 }
 
+func (g *Gonarr) GetMonitorCommand(seriesId int) MonitorCommand {
+	url := fmt.Sprintf("series/%d", seriesId)
+	b := g.makeGetRequest(url)
+	var monitorCommand MonitorCommand
+	json.Unmarshal(b, &monitorCommand)
+	return monitorCommand
+}
+
 func (g *Gonarr) GetSystemStatus() {
-	b := g.makeRequest("system/status")
+	b := g.makeGetRequest("system/status")
 	fmt.Println(string(b))
 }
 
@@ -100,7 +128,7 @@ func (g *Gonarr) GetSystemStatus() {
 func (g *Gonarr) SearchSeries(searchTerm string) SeriesInformationList {
 	// FIXME: Escape things like spaces, etc.
 	url := fmt.Sprintf("series/lookup?term=%s", searchTerm)
-	b := g.makeRequest(url)
+	b := g.makeGetRequest(url)
 	var seriesInformationList SeriesInformationList
 	json.Unmarshal(b, &seriesInformationList)
 	return seriesInformationList

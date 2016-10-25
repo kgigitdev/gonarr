@@ -6,7 +6,7 @@ import "encoding/json"
 // "seasons" field of SeriesInformation
 type Season struct {
 	SeasonNumber int  `json:"seasonNumber,omitempty"`
-	Monitored    bool `json:"monitored,omitempty"`
+	Monitored    bool `json:"monitored"`
 }
 
 type SeriesImage struct {
@@ -135,6 +135,10 @@ type IDFragment struct {
 	ID int `json:"id,omitempty"`
 }
 
+type PathFragment struct {
+	Path string `json:"path,omitempty"`
+}
+
 // CommonFragments is a compositional struct containing all fragments
 // common to "all series" and "all my series".
 type CommonFragments struct {
@@ -148,6 +152,7 @@ type CommonFragments struct {
 	MonitoredFragment
 	NetworkFragment
 	OverviewFragment
+	PathFragment
 	ProfileIDFragment
 	QualityProfileIDFragment
 	RatingsFragment
@@ -199,10 +204,14 @@ func (m MySeriesList) String() string {
 	return toJSON(m)
 }
 
-func toJSON(i interface{}) string {
+func toJSONB(i interface{}) []byte {
 	j, err := json.MarshalIndent(i, "", "  ")
 	if err != nil {
-		return err.Error()
+		return []byte(err.Error())
 	}
-	return string(j)
+	return j
+}
+
+func toJSON(i interface{}) string {
+	return string(toJSONB(i))
 }

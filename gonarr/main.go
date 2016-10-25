@@ -43,10 +43,21 @@ func main() {
 		series := g.GetAllSeries()
 		fmt.Println(series)
 	} else if opts.Info > 0 {
-		series := g.GetOneSeries(opts.Info)
-		fmt.Println(series)
-		if opts.ToggleMonitor && opts.Season > 1 {
-			log.Println("Toggling montoring flag ...")
+		if opts.ToggleMonitor && opts.Season > 0 {
+			cmd := g.GetOneSeries(opts.Info)
+			fmt.Println(cmd)
+			fmt.Println("Toggling...")
+			season := cmd.Seasons[opts.Season-1]
+			season.Monitored = !season.Monitored
+			cmd.Seasons[opts.Season-1] = season
+			fmt.Println(cmd)
+			fmt.Println("Posting ...")
+			b := g.UpdateOneSeries(cmd)
+			s := string(b)
+			fmt.Println(s)
+		} else {
+			series := g.GetOneSeries(opts.Info)
+			fmt.Println(series)
 		}
 	} else if opts.Search != "" {
 		fmt.Println(g.SearchSeries(opts.Search))
