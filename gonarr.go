@@ -111,14 +111,6 @@ func (g *Gonarr) GetOneSeries(seriesId int) MySeries {
 	return mySeries
 }
 
-func (g *Gonarr) GetMonitorCommand(seriesId int) MonitorCommand {
-	url := fmt.Sprintf("series/%d", seriesId)
-	b := g.makeGetRequest(url)
-	var monitorCommand MonitorCommand
-	json.Unmarshal(b, &monitorCommand)
-	return monitorCommand
-}
-
 func (g *Gonarr) GetSystemStatus() {
 	b := g.makeGetRequest("system/status")
 	fmt.Println(string(b))
