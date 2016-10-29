@@ -24,7 +24,11 @@ var opts struct {
 
 	Status bool `long:"status" description:"Get system status"`
 
-	SeasonSearch bool `long:"season-search" description:"Invoke SeasonSearch command"`
+	SeasonSearch bool `long:"season-search" description:"Invoke the SeasonSearch command"`
+
+	RefreshSeries bool `long:"refresh-series" description:"Invoke the RefreshSeries command"`
+
+	RescanSeries bool `long:"rescan-series" description:"Invoke the RescanSeries command"`
 
 	Full bool `long:"full" description:"List full JSON"`
 }
@@ -54,6 +58,16 @@ func main() {
 			log.Fatal("No season number supplied.")
 		}
 		g.SeasonSearch(opts.SeriesId, opts.SeasonNumber)
+	} else if opts.RescanSeries {
+		if opts.SeriesId == 0 {
+			log.Fatal("No series id supplied.")
+		}
+		g.RescanSeries(opts.SeriesId)
+	} else if opts.RefreshSeries {
+		if opts.SeriesId == 0 {
+			log.Fatal("No series id supplied.")
+		}
+		g.RefreshSeries(opts.SeriesId)
 	} else if opts.ListSeries {
 		series := g.GetAllSeries()
 		fmt.Println(series)

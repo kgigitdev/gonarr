@@ -85,10 +85,29 @@ func (g *Gonarr) UpdateOneSeries(cmd MySeries) []byte {
 	return g.makePutRequest(url, bytes.NewBuffer(payload))
 }
 
-// ListCommands ...
+// RefreshSeries invokes the RefreshSeries API command
+func (g *Gonarr) RefreshSeries(seriesId int) []byte {
+	url := fmt.Sprintf("command/RefreshSeries?seriesId=%d", seriesId)
+	return g.makePostRequest(url, nil)
+}
+
+// RescanSeries invokes the RescanSeries API command
+func (g *Gonarr) RescanSeries(seriesId int) []byte {
+	url := fmt.Sprintf("command/RescanSeries?seriesId=%d", seriesId)
+	return g.makePostRequest(url, nil)
+}
+
+// SeasonSearch invokes the SeasonSearch API command
 func (g *Gonarr) SeasonSearch(seriesId int, seasonNumber int) []byte {
 	url := fmt.Sprintf("command/SeasonSearch?seriesId=%d&seasonNumber=%d",
 		seriesId, seasonNumber)
+	return g.makePostRequest(url, nil)
+}
+
+// SeriesSearch invokes the SeasonSearch API command
+func (g *Gonarr) SeriesSearch(seriesId int) []byte {
+	url := fmt.Sprintf("command/SeriesSearch?seriesId=%d",
+		seriesId)
 	return g.makePostRequest(url, nil)
 }
 
