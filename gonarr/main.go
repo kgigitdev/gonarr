@@ -10,14 +10,21 @@ import (
 )
 
 var opts struct {
-	Config     string `short:"c" long:"config" description:"config file" default:"gonarr.json"`
-	Search     string `short:"s" long:"search" description:"Search series"`
-	ListSeries bool   `short:"l" long:"list-series" description:"List all series in your collection"`
-	Info       int    `short:"i" long:"info" description:"Show info about one series in your collection"`
-	Season     int    `long:"season" description:"Season (for modifying stuff)"`
+	Config       string `short:"c" long:"config" description:"config file" default:"gonarr.json"`
+	Search       string `short:"s" long:"search" description:"Search series"`
+	ListSeries   bool   `short:"l" long:"list-series" description:"List all series in your collection"`
+	Info         int    `short:"i" long:"info" description:"Show info about one series in your collection"`
+	SeasonNumber int    `long:"season-number" description:"Season Number"`
 
-	ToggleMonitor bool `short:"m" long:"toggle-monitor" description:"Season (for modifying stuff)"`
-	Status        bool `long:"status" description:"Get system status"`
+	SeriesId int `long:"series" description:"Series Id"`
+
+	ToggleMonitor bool `short:"m" long:"toggle-monitor" description:"Toggle the monitoring flag for a season"`
+
+	SetMonitor bool `long:"set-monitor" description:"Set the monitoring flag for a seaon"`
+
+	Status bool `long:"status" description:"Get system status"`
+
+	SeasonSearch bool `long:"season-search" description:"Invoke SeasonSearch command"`
 
 	Full bool `long:"full" description:"List full JSON"`
 }
@@ -39,18 +46,31 @@ func main() {
 
 	if opts.Status {
 		g.GetSystemStatus()
+	} else if opts.SeasonSearch {
+		if opts.SeriesId == 0 {
+			log.Fatal("No series id supplied.")
+		}
+		if opts.SeasonNumber == 0 {
+			log.Fatal("No season number supplied.")
+		}
+		g.SeasonSearch(opts.SeriesId, opts.SeasonNumber)
 	} else if opts.ListSeries {
 		series := g.GetAllSeries()
 		fmt.Println(series)
 	} else if opts.Info > 0 {
-		if opts.ToggleMonitor && opts.Season > 0 {
+		if (opts.SetMonitor || opts.ToggleMonitor) && opts.SeasonNumber > 0 {
 			cmd := g.GetOneSeries(opts.Info)
-			fmt.Println(cmd)
-			fmt.Println("Toggling...")
-			season := cmd.Seasons[opts.Season-1]
-			season.Monitored = !season.Monitored
-			cmd.Seasons[opts.Season-1] = season
-			fmt.Println(cmd)
+			for i, season := range cmd.Seasons {
+				if season.SeasonNumber == opts.SeasonNumber {
+					if opts.SetMonitor {
+						season.Monitored = true
+					} else {
+						season.Monitored = !season.Monitored
+					}
+					cmd.Seasons[i] = season
+					break
+				}
+			}
 			fmt.Println("Posting ...")
 			b := g.UpdateOneSeries(cmd)
 			s := string(b)

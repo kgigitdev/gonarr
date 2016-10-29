@@ -86,6 +86,13 @@ func (g *Gonarr) UpdateOneSeries(cmd MySeries) []byte {
 }
 
 // ListCommands ...
+func (g *Gonarr) SeasonSearch(seriesId int, seasonNumber int) []byte {
+	url := fmt.Sprintf("command/SeasonSearch?seriesId=%d&seasonNumber=%d",
+		seriesId, seasonNumber)
+	return g.makePostRequest(url, nil)
+}
+
+// ListCommands ...
 func (g *Gonarr) ListCommands() []byte {
 	return g.makeGetRequest("commands")
 }
