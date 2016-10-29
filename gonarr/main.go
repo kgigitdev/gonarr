@@ -13,7 +13,7 @@ var opts struct {
 	Config       string `short:"c" long:"config" description:"config file" default:"gonarr.json"`
 	Search       string `short:"s" long:"search" description:"Search series"`
 	ListSeries   bool   `short:"l" long:"list-series" description:"List all series in your collection"`
-	Info         int    `short:"i" long:"info" description:"Show info about one series in your collection"`
+	Info         bool   `short:"i" long:"info" description:"Show info about one series in your collection"`
 	SeasonNumber int    `long:"season-number" description:"Season Number"`
 
 	SeriesId int `long:"series" description:"Series Id"`
@@ -71,28 +71,34 @@ func main() {
 	} else if opts.ListSeries {
 		series := g.GetAllSeries()
 		fmt.Println(series)
-	} else if opts.Info > 0 {
-		if (opts.SetMonitor || opts.ToggleMonitor) && opts.SeasonNumber > 0 {
-			cmd := g.GetOneSeries(opts.Info)
-			for i, season := range cmd.Seasons {
-				if season.SeasonNumber == opts.SeasonNumber {
-					if opts.SetMonitor {
-						season.Monitored = true
-					} else {
-						season.Monitored = !season.Monitored
-					}
-					cmd.Seasons[i] = season
-					break
-				}
-			}
-			fmt.Println("Posting ...")
-			b := g.UpdateOneSeries(cmd)
-			s := string(b)
-			fmt.Println(s)
-		} else {
-			series := g.GetOneSeries(opts.Info)
-			fmt.Println(series)
+	} else if opts.Info {
+		if opts.SeriesId == 0 {
+			log.Fatal("No series id supplied.")
 		}
+		fmt.Println(g.GetOneSeries(opts.SeriesId))
+	} else if opts.SetMonitor || opts.ToggleMonitor {
+		if opts.SeriesId == 0 {
+			log.Fatal("No series id supplied.")
+		}
+		if opts.SeasonNumber == 0 {
+			log.Fatal("No season number supplied.")
+		}
+		cmd := g.GetOneSeries(opts.SeriesId)
+		for i, season := range cmd.Seasons {
+			if season.SeasonNumber == opts.SeasonNumber {
+				if opts.SetMonitor {
+					season.Monitored = true
+				} else {
+					season.Monitored = !season.Monitored
+				}
+				cmd.Seasons[i] = season
+				break
+			}
+		}
+		fmt.Println("Posting ...")
+		b := g.UpdateOneSeries(cmd)
+		s := string(b)
+		fmt.Println(s)
 	} else if opts.Search != "" {
 		fmt.Println(g.SearchSeries(opts.Search))
 	}
