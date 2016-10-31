@@ -47,19 +47,19 @@ func NewGonarrFromConfigFile(path string) *Gonarr {
 	return g
 }
 
-func (g *Gonarr) makeGetRequest(command string) []byte {
+func (g *Gonarr) makeGetRequest(command string) string {
 	return g.makeRequest("GET", command, nil)
 }
 
-func (g *Gonarr) makePostRequest(command string, payload io.Reader) []byte {
+func (g *Gonarr) makePostRequest(command string, payload io.Reader) string {
 	return g.makeRequest("POST", command, payload)
 }
 
-func (g *Gonarr) makePutRequest(command string, payload io.Reader) []byte {
+func (g *Gonarr) makePutRequest(command string, payload io.Reader) string {
 	return g.makeRequest("PUT", command, payload)
 }
 
-func (g *Gonarr) makeRequest(method string, command string, payload io.Reader) []byte {
+func (g *Gonarr) makeRequest(method string, command string, payload io.Reader) string {
 	url := fmt.Sprintf("http://%s:%d/%s%s",
 		g.Hostname, g.Port, g.ApiPrefix, command)
 	fmt.Println(url)
@@ -76,54 +76,55 @@ func (g *Gonarr) makeRequest(method string, command string, payload io.Reader) [
 	if err != nil {
 		log.Fatal(err)
 	}
-	return body
+	return string(body)
 }
 
-func (g *Gonarr) UpdateOneSeries(cmd MySeries) []byte {
+func (g *Gonarr) UpdateOneSeries(cmd MySeries) string {
 	url := fmt.Sprintf("series")
 	payload := toJSONB(cmd)
 	return g.makePutRequest(url, bytes.NewBuffer(payload))
 }
 
 // RefreshSeries invokes the RefreshSeries API command
-func (g *Gonarr) RefreshSeries(seriesId int) []byte {
+func (g *Gonarr) RefreshSeries(seriesId int) string {
 	url := fmt.Sprintf("command/RefreshSeries?seriesId=%d", seriesId)
 	return g.makePostRequest(url, nil)
 }
 
 // RescanSeries invokes the RescanSeries API command
-func (g *Gonarr) RescanSeries(seriesId int) []byte {
+func (g *Gonarr) RescanSeries(seriesId int) string {
 	url := fmt.Sprintf("command/RescanSeries?seriesId=%d", seriesId)
 	return g.makePostRequest(url, nil)
 }
 
 // SeasonSearch invokes the SeasonSearch API command
-func (g *Gonarr) SeasonSearch(seriesId int, seasonNumber int) []byte {
-	url := fmt.Sprintf("command/SeasonSearch?seriesId=%d&seasonNumber=%d",
-		seriesId, seasonNumber)
-	return g.makePostRequest(url, nil)
+func (g *Gonarr) SonarrCommand(commandName string, seriesId int, seasonNumber int) string {
+	cmd := NewSonarrCommand(commandName, seriesId, seasonNumber)
+	payload := toJSONB(cmd)
+	r := bytes.NewBuffer(payload)
+	return g.makePostRequest("command", r)
 }
 
 // SeriesSearch invokes the SeasonSearch API command
-func (g *Gonarr) SeriesSearch(seriesId int) []byte {
+func (g *Gonarr) SeriesSearch(seriesId int) string {
 	url := fmt.Sprintf("command/SeriesSearch?seriesId=%d",
 		seriesId)
 	return g.makePostRequest(url, nil)
 }
 
 // ListCommands ...
-func (g *Gonarr) ListCommands() []byte {
+func (g *Gonarr) ListCommands() string {
 	// return g.makeGetRequest("commands")
 	return g.makeGetRequest("command")
 }
 
-func (g *Gonarr) ListCommand(commandId int) []byte {
+func (g *Gonarr) ListCommand(commandId int) string {
 	url := fmt.Sprintf("command/%d", commandId)
 	return g.makeGetRequest(url)
 }
 
 // ListCalendar ...
-func (g *Gonarr) ListCalendar() []byte {
+func (g *Gonarr) ListCalendar() string {
 	return g.makeGetRequest("calendar")
 }
 
@@ -131,7 +132,7 @@ func (g *Gonarr) ListCalendar() []byte {
 func (g *Gonarr) GetAllSeries() MySeriesList {
 	b := g.makeGetRequest("series")
 	var mySeriesList MySeriesList
-	json.Unmarshal(b, &mySeriesList)
+	json.Unmarshal([]byte(b), &mySeriesList)
 	return mySeriesList
 }
 
@@ -139,11 +140,11 @@ func (g *Gonarr) GetOneSeries(seriesId int) MySeries {
 	url := fmt.Sprintf("series/%d", seriesId)
 	b := g.makeGetRequest(url)
 	var mySeries MySeries
-	json.Unmarshal(b, &mySeries)
+	json.Unmarshal([]byte(b), &mySeries)
 	return mySeries
 }
 
-func (g *Gonarr) GetSystemStatus() []byte {
+func (g *Gonarr) GetSystemStatus() string {
 	return g.makeGetRequest("system/status")
 }
 
@@ -153,7 +154,7 @@ func (g *Gonarr) SearchSeries(searchTerm string) SeriesInformationList {
 	url := fmt.Sprintf("series/lookup?term=%s", searchTerm)
 	b := g.makeGetRequest(url)
 	var seriesInformationList SeriesInformationList
-	json.Unmarshal(b, &seriesInformationList)
+	json.Unmarshal([]byte(b), &seriesInformationList)
 	return seriesInformationList
 }
 

@@ -65,7 +65,7 @@ func main() {
 		if opts.SeasonNumber == 0 {
 			log.Fatal("No season number supplied.")
 		}
-		fmt.Println(g.SeasonSearch(opts.SeriesId, opts.SeasonNumber))
+		fmt.Println(g.SonarrCommand("SeasonSearch", opts.SeriesId, opts.SeasonNumber))
 	} else if opts.RescanSeries {
 		if opts.SeriesId == 0 {
 			log.Fatal("No series id supplied.")

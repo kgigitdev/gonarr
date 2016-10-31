@@ -204,6 +204,20 @@ func (m MySeriesList) String() string {
 	return toJSON(m)
 }
 
+type SonarrCommand struct {
+	CommandName  string `json:"name"`
+	SeriesId     int    `json:"seriesId"`
+	SeasonNumber int    `json:"seasonNumber"`
+}
+
+func NewSonarrCommand(commandName string, seriesId int, seasonNumber int) SonarrCommand {
+	return SonarrCommand{
+		CommandName:  commandName,
+		SeriesId:     seriesId,
+		SeasonNumber: seasonNumber,
+	}
+}
+
 func toJSONB(i interface{}) []byte {
 	j, err := json.MarshalIndent(i, "", "  ")
 	if err != nil {
