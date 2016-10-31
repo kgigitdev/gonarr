@@ -113,7 +113,13 @@ func (g *Gonarr) SeriesSearch(seriesId int) []byte {
 
 // ListCommands ...
 func (g *Gonarr) ListCommands() []byte {
-	return g.makeGetRequest("commands")
+	// return g.makeGetRequest("commands")
+	return g.makeGetRequest("command")
+}
+
+func (g *Gonarr) ListCommand(commandId int) []byte {
+	url := fmt.Sprintf("command/%d", commandId)
+	return g.makeGetRequest(url)
 }
 
 // ListCalendar ...
@@ -137,9 +143,8 @@ func (g *Gonarr) GetOneSeries(seriesId int) MySeries {
 	return mySeries
 }
 
-func (g *Gonarr) GetSystemStatus() {
-	b := g.makeGetRequest("system/status")
-	fmt.Println(string(b))
+func (g *Gonarr) GetSystemStatus() []byte {
+	return g.makeGetRequest("system/status")
 }
 
 // SearchSeries searches for series matching the search term

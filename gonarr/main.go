@@ -30,6 +30,10 @@ var opts struct {
 
 	RescanSeries bool `long:"rescan-series" description:"Invoke the RescanSeries command"`
 
+	ListCommands bool `long:"list-commands" description:"List the command ids of all commands currently in flight"`
+
+	ListCommand int `long:"list-command" description:"Get the status of one command (by command id)"`
+
 	Full bool `long:"full" description:"List full JSON"`
 }
 
@@ -49,7 +53,11 @@ func main() {
 	log.Println("Gonarr is: ", g)
 
 	if opts.Status {
-		g.GetSystemStatus()
+		fmt.Println(g.GetSystemStatus())
+	} else if opts.ListCommands {
+		fmt.Println(g.ListCommands())
+	} else if opts.ListCommand > 0 {
+		fmt.Println(g.ListCommand(opts.ListCommand))
 	} else if opts.SeasonSearch {
 		if opts.SeriesId == 0 {
 			log.Fatal("No series id supplied.")
@@ -57,17 +65,17 @@ func main() {
 		if opts.SeasonNumber == 0 {
 			log.Fatal("No season number supplied.")
 		}
-		g.SeasonSearch(opts.SeriesId, opts.SeasonNumber)
+		fmt.Println(g.SeasonSearch(opts.SeriesId, opts.SeasonNumber))
 	} else if opts.RescanSeries {
 		if opts.SeriesId == 0 {
 			log.Fatal("No series id supplied.")
 		}
-		g.RescanSeries(opts.SeriesId)
+		fmt.Println(g.RescanSeries(opts.SeriesId))
 	} else if opts.RefreshSeries {
 		if opts.SeriesId == 0 {
 			log.Fatal("No series id supplied.")
 		}
-		g.RefreshSeries(opts.SeriesId)
+		fmt.Println(g.RefreshSeries(opts.SeriesId))
 	} else if opts.ListSeries {
 		series := g.GetAllSeries()
 		fmt.Println(series)
