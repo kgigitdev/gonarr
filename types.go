@@ -15,8 +15,8 @@ type SeriesImage struct {
 }
 
 type Ratings struct {
-	Votes int `json:"votes,omitempty"`
-	Value int `json:"value,omitempty"`
+	Votes int     `json:"votes,omitempty"`
+	Value float32 `json:"value,omitempty"`
 }
 
 type AddedFragment struct {
@@ -96,7 +96,7 @@ type StatusFragment struct {
 }
 
 type TagsFragment struct {
-	Tags []string `json:"tags,omitempty"`
+	Tags []int `json:"tags,omitempty"`
 }
 
 type TitleFragment struct {
