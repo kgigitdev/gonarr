@@ -13,12 +13,13 @@ import (
 
 // Gonarr ...
 type Gonarr struct {
-	Hostname  string `json:"hostname"`
-	Port      int    `json:"port"`
-	ApiPrefix string `json:"api_prefix"`
-	Username  string `json:"username"`
-	Password  string `json:"password"`
-	APIKey    string `json:"api_key"`
+	Hostname  string        `json:"hostname"`
+	Port      int           `json:"port"`
+	ApiPrefix string        `json:"api_prefix"`
+	Username  string        `json:"username"`
+	Password  string        `json:"password"`
+	APIKey    string        `json:"api_key"`
+	Opts      GonarrOptions `json:"-"`
 }
 
 func (g Gonarr) String() string {
@@ -32,7 +33,8 @@ func (g Gonarr) String() string {
 // NewGonarrFromConfigFile creates and returns a pointer to a new
 // Gonarr object, from a persisted JSON configuration file at the
 // specified path.
-func NewGonarrFromConfigFile(path string) *Gonarr {
+func NewGonarrFromOptions(opts GonarrOptions) *Gonarr {
+	path := opts.Config
 	fh, err := os.Open(path)
 	if err != nil {
 		log.Fatal(err)
@@ -44,6 +46,7 @@ func NewGonarrFromConfigFile(path string) *Gonarr {
 	}
 	g := &Gonarr{}
 	json.Unmarshal(config, g)
+	g.Opts = opts
 	return g
 }
 
@@ -81,34 +84,33 @@ func (g *Gonarr) makeRequest(method string, command string, payload io.Reader) s
 
 func (g *Gonarr) UpdateOneSeries(cmd MySeries) string {
 	url := fmt.Sprintf("series")
-	payload := toJSONB(cmd)
-	return g.makePutRequest(url, bytes.NewBuffer(payload))
+	r := g.toJSONB(cmd)
+	return g.makePutRequest(url, r)
 }
 
 // RefreshSeries invokes the RefreshSeries API command
-func (g *Gonarr) RefreshSeries(seriesId int) string {
-	url := fmt.Sprintf("command/RefreshSeries?seriesId=%d", seriesId)
+func (g *Gonarr) RefreshSeries(seriesID int) string {
+	url := fmt.Sprintf("command/RefreshSeries?seriesId=%d", seriesID)
 	return g.makePostRequest(url, nil)
 }
 
 // RescanSeries invokes the RescanSeries API command
-func (g *Gonarr) RescanSeries(seriesId int) string {
-	url := fmt.Sprintf("command/RescanSeries?seriesId=%d", seriesId)
+func (g *Gonarr) RescanSeries(seriesID int) string {
+	url := fmt.Sprintf("command/RescanSeries?seriesId=%d", seriesID)
 	return g.makePostRequest(url, nil)
 }
 
 // SeasonSearch invokes the SeasonSearch API command
-func (g *Gonarr) SonarrCommand(commandName string, seriesId int, seasonNumber int) string {
-	cmd := NewSonarrCommand(commandName, seriesId, seasonNumber)
-	payload := toJSONB(cmd)
-	r := bytes.NewBuffer(payload)
+func (g *Gonarr) SonarrCommand(commandName string, seriesID int, seasonNumber int) string {
+	cmd := NewSonarrCommand(commandName, seriesID, seasonNumber)
+	r := g.toJSONB(cmd)
 	return g.makePostRequest("command", r)
 }
 
 // SeriesSearch invokes the SeasonSearch API command
-func (g *Gonarr) SeriesSearch(seriesId int) string {
+func (g *Gonarr) SeriesSearch(seriesID int) string {
 	url := fmt.Sprintf("command/SeriesSearch?seriesId=%d",
-		seriesId)
+		seriesID)
 	return g.makePostRequest(url, nil)
 }
 
@@ -136,8 +138,8 @@ func (g *Gonarr) GetAllSeries() MySeriesList {
 	return mySeriesList
 }
 
-func (g *Gonarr) GetOneSeries(seriesId int) MySeries {
-	url := fmt.Sprintf("series/%d", seriesId)
+func (g *Gonarr) GetOneSeries(seriesID int) MySeries {
+	url := fmt.Sprintf("series/%d", seriesID)
 	b := g.makeGetRequest(url)
 	var mySeries MySeries
 	json.Unmarshal([]byte(b), &mySeries)
@@ -187,4 +189,13 @@ func (g *Gonarr) Filter(i interface{}, keys ...string) interface{} {
 		return o
 	}
 	return i
+}
+
+func (g *Gonarr) toJSONB(i interface{}) io.Reader {
+	jsonb := toJSONB(i)
+	if g.Opts.DebugOut {
+		fmt.Println(string(jsonb))
+	}
+	r := bytes.NewBuffer(jsonb)
+	return r
 }

@@ -189,11 +189,13 @@ func (s SeriesInformationList) String() string {
 	return toJSON(s)
 }
 
+// MySeries ...
 type MySeries struct {
 	IDFragment
 	CommonFragments
 }
 
+// MySeriesList ...
 type MySeriesList []MySeries
 
 func (m MySeries) String() string {
@@ -204,16 +206,18 @@ func (m MySeriesList) String() string {
 	return toJSON(m)
 }
 
+// SonarrCommand ...
 type SonarrCommand struct {
 	CommandName  string `json:"name"`
-	SeriesId     int    `json:"seriesId"`
+	SeriesID     int    `json:"seriesId"`
 	SeasonNumber int    `json:"seasonNumber"`
 }
 
-func NewSonarrCommand(commandName string, seriesId int, seasonNumber int) SonarrCommand {
+// NewSonarrCommand ...
+func NewSonarrCommand(commandName string, seriesID int, seasonNumber int) SonarrCommand {
 	return SonarrCommand{
 		CommandName:  commandName,
-		SeriesId:     seriesId,
+		SeriesID:     seriesID,
 		SeasonNumber: seasonNumber,
 	}
 }
